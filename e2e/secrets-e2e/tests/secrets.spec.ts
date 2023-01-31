@@ -28,7 +28,7 @@ describe('secrets e2e', () => {
     await runNxCommandAsync(
       `generate @streamersonglist/secrets:secrets ${project}`
     );
-    const result = await runNxCommandAsync(`build ${project}`);
+    const result = await runNxCommandAsync(`get ${project}`);
     expect(result.stdout).toContain('Executor ran');
   }, 120000);
 

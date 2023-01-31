@@ -6,7 +6,7 @@ import { SecretsGeneratorSchema } from './schema';
 
 describe('secrets generator', () => {
   let appTree: Tree;
-  const options: SecretsGeneratorSchema = { name: 'test' };
+  const options: SecretsGeneratorSchema = { project: 'test' };
 
   beforeEach(() => {
     appTree = createTreeWithEmptyWorkspace();

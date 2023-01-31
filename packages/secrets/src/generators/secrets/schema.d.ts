@@ -1,5 +1,7 @@
 export interface SecretsGeneratorSchema {
-  name: string;
-  tags?: string;
-  directory?: string;
+  project: string;
+  envFile?: string;
+  secretsJsonFilename?: string;
+  ssmPrefix?: string;
+  awsProfileName?: string;
 }
