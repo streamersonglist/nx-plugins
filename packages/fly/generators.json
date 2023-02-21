@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "name": "fly",
+  "version": "0.0.4",
+  "generators": {
+    "fly": {
+      "factory": "./src/generators/fly/generator",
+      "schema": "./src/generators/fly/schema.json",
+      "description": "fly generator"
+    }
+  }
+}

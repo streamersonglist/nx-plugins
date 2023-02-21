@@ -13,8 +13,10 @@
     "lib": ["es2017", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
+    "strict": true,
     "baseUrl": ".",
     "paths": {
+      "@streamersonglist/fly": ["packages/fly/src/index.ts"],
       "@streamersonglist/secrets": ["packages/secrets/src/index.ts"]
     }
   },

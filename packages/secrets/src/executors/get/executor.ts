@@ -12,7 +12,5 @@ export default async function runExecutor(options: GetExecutorSchema) {
     return { success: false };
   }
 
-  return {
-    success: true,
-  };
+  return { success: true };
 }

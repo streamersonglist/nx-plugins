@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "executors": {
+    "deploy-secrets": {
+      "implementation": "./src/executors/deploy-secrets/executor",
+      "schema": "./src/executors/deploy-secrets/schema.json",
+      "description": "deploy-secrets executor"
+    },
+    "deploy": {
+      "implementation": "./src/executors/deploy/executor",
+      "schema": "./src/executors/deploy/schema.json",
+      "description": "deploy executor"
+    }
+  }
+}

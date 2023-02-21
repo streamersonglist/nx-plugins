@@ -24,22 +24,27 @@ function normalizeOptions(
   const projectName = options.project;
   const projectConfig = readProjectConfiguration(tree, projectName);
 
-  if (!options.envFile.startsWith('.env')) {
+  if (options.envFile && !options.envFile?.startsWith('.env')) {
     throw new Error(
       '"envFile" should begin with .env to be included in gitignore'
     );
   }
 
+  const secretsJsonFileName = options.secretsJsonFilename?.length
+    ? `${options.secretsJsonFilename}${
+        options.secretsJsonFilename.endsWith('.json') ? '' : '.json'
+      }`
+    : 'secrets.json';
+
   return {
     ...options,
     projectName,
     projectConfig,
-    secretsJsonFilename: options.secretsJsonFilename,
-    secretsJson: path.join(
-      projectConfig.root,
-      `${options.secretsJsonFilename ?? 'secrets'}.json`
-    ),
-    envFile: path.join(projectConfig.root, options.envFile ?? '.env.secrets'),
+    secretsJsonFilename: options.secretsJsonFilename?.length
+      ? options.secretsJsonFilename
+      : 'secrets',
+    secretsJson: path.join(projectConfig.root, secretsJsonFileName),
+    envFile: path.join(projectConfig.root, options.envFile || '.env.secrets'),
   };
 }
 
@@ -63,12 +68,18 @@ export default async function (tree: Tree, options: SecretsGeneratorSchema) {
   const targetGetSecrets = 'get-secrets';
   const targetSetSecrets = 'set-secrets';
 
-  if (targetGetSecrets in normalizedOptions.projectConfig.targets) {
+  if (
+    normalizedOptions.projectConfig.targets &&
+    targetGetSecrets in normalizedOptions.projectConfig.targets
+  ) {
     throw new Error(
       `Project "${normalizedOptions.projectName}" already has a ${targetGetSecrets} target.`
     );
   }
-  if (targetSetSecrets in normalizedOptions.projectConfig.targets) {
+  if (
+    normalizedOptions.projectConfig.targets &&
+    targetSetSecrets in normalizedOptions.projectConfig.targets
+  ) {
     throw new Error(
       `Project "${normalizedOptions.projectName}" already has a ${targetSetSecrets} target.`
     );
@@ -81,10 +92,11 @@ export default async function (tree: Tree, options: SecretsGeneratorSchema) {
       [targetGetSecrets]: {
         executor: '@streamersonglist/secrets:get',
         options: {
-          envFilePath: normalizedOptions.envFile,
+          envFile: normalizedOptions.envFile,
           secretsJson: normalizedOptions.secretsJson,
           ssmPrefix: normalizedOptions.ssmPrefix,
           awsProfileName: normalizedOptions.awsProfileName,
+          awsRegion: normalizedOptions.awsRegion,
         },
         outputs: ['{options.secretsJson}'],
       },
@@ -95,8 +107,9 @@ export default async function (tree: Tree, options: SecretsGeneratorSchema) {
           secretsJson: normalizedOptions.secretsJson,
           ssmPrefix: normalizedOptions.ssmPrefix,
           awsProfileName: normalizedOptions.awsProfileName,
+          awsRegion: normalizedOptions.awsRegion,
         },
-        outputs: ['{options.secretsJson}'],
+        outputs: ['{options.envFile}'],
       },
     },
   });
