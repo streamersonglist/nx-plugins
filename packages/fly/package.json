@@ -1,0 +1,12 @@
+{
+  "name": "@streamersonglist/fly",
+  "version": "0.0.14",
+  "main": "src/index.js",
+  "generators": "./generators.json",
+  "executors": "./executors.json",
+  "dependencies": {
+    "graphql-request": "5.1.0",
+    "dotenv": "16.0.3",
+    "tslib": "^2.4.1"
+  }
+}

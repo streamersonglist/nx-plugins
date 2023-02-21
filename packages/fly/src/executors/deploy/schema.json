@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "version": 2,
+  "cli": "nx",
+  "title": "Deploy executor",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "appName": {
+      "type": "string"
+    },
+    "dockerfile": {
+      "type": "string"
+    },
+    "tomlFile": {
+      "type": "string"
+    },
+    "regions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": ["sea"]
+    },
+    "organization": {
+      "type": "string"
+    }
+  },
+  "required": ["appName", "dockerfile", "tomlFile", "regions", "organization"]
+}

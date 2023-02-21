@@ -2,25 +2,28 @@ import {
   GetParametersCommand,
   ParameterType,
   PutParameterCommand,
-  SSMClientConfig,
   SSMClient,
+  SSMClientConfig,
 } from '@aws-sdk/client-ssm';
 import { fromSSO } from '@aws-sdk/credential-providers';
+import { logger } from '@nrwl/devkit';
 import { parse } from 'dotenv';
 import { readFileSync, writeFileSync } from 'fs';
-import { logger } from '@nrwl/devkit';
 import { GetExecutorSchema } from '../executors/get/schema';
 import { SetExecutorSchema } from '../executors/set/schema';
 
 type OutputVars = { name: string; value: string };
 
-function getAwsConfig(awsProfileName?: string): SSMClientConfig {
+function getAwsConfig(
+  awsRegion: string,
+  awsProfileName?: string
+): SSMClientConfig {
   return {
     credentials: fromSSO({
       profile: awsProfileName,
     }),
-    region: 'us-west-2',
-    retryMode: 'adaptive'
+    region: awsRegion,
+    retryMode: 'adaptive',
   };
 }
 
@@ -63,18 +66,19 @@ export async function getSecrets({
   envFile,
   secretsJson,
   awsProfileName,
+  awsRegion,
 }: GetExecutorSchema) {
-  const client = new SSMClient(getAwsConfig(awsProfileName));
+  const client = new SSMClient(getAwsConfig(awsRegion, awsProfileName));
   const paramRecords = getEnvVarsFromJsonFile(secretsJson);
-  let parameters = Object.keys(paramRecords).map((key) => ({
+  const parameters = Object.keys(paramRecords).map((key) => ({
     ssm: paramRecords[key],
     variable: key,
   }));
 
   // limited to 10 per call
   // https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_GetParameters.html
-  let names: string[][];
-  let nameMap: Record<string, string> = {};
+  const names: string[][] = [];
+  const nameMap: Record<string, string> = {};
   for (let i = 0; i < Math.ceil(parameters.length / 10); i += 10) {
     names.push(
       parameters.slice(i, i + 10).map(({ ssm, variable }) => {
@@ -96,14 +100,19 @@ export async function getSecrets({
   );
   const outputVars: OutputVars[] = [];
 
-  for (let splitNames of names) {
+  for (const splitNames of names) {
     try {
+      logger.debug('fetching parameters', { parameters: splitNames });
       const { Parameters } = await client.send(
         new GetParametersCommand({ Names: splitNames })
       );
+      logger.debug('returned parameters', { parameters: Parameters });
+      if (!Parameters) {
+        throw new Error('Parameters not found');
+      }
       outputVars.push(
         ...Parameters.map((param) => ({
-          name: nameMap[param.Name],
+          name: nameMap[param.Name || ''],
           value: param.Value || '',
         }))
       );
@@ -114,7 +123,7 @@ export async function getSecrets({
   }
 
   if (!outputVars.length) {
-    logger.info('no variables found, skipping');
+    logger.info('No variables found, skipping');
     return;
   }
 
@@ -126,12 +135,13 @@ export async function putSecrets({
   envFile,
   secretsJson,
   awsProfileName,
+  awsRegion,
 }: SetExecutorSchema) {
   const paramsToPut = getEnvVarsFromJsonFile(secretsJson);
   const secrets = getSecretsFromEnv(envFile);
-  const client = new SSMClient(getAwsConfig(awsProfileName));
+  const client = new SSMClient(getAwsConfig(awsRegion, awsProfileName));
 
-  for (let key of Object.keys(paramsToPut)) {
+  for (const key of Object.keys(paramsToPut)) {
     const paramName = `${ssmPrefix}${paramsToPut[key]}`;
     const value = secrets[key];
     try {

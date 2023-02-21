@@ -1,0 +1,61 @@
+{
+  "name": "fly",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/fly/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/fly",
+        "main": "packages/fly/src/index.ts",
+        "tsConfig": "packages/fly/tsconfig.lib.json",
+        "assets": [
+          "packages/fly/*.md",
+          {
+            "input": "./packages/fly/src",
+            "glob": "**/!(*.ts)",
+            "output": "./src"
+          },
+          {
+            "input": "./packages/fly/src",
+            "glob": "**/*.d.ts",
+            "output": "./src"
+          },
+          {
+            "input": "./packages/fly",
+            "glob": "generators.json",
+            "output": "."
+          },
+          {
+            "input": "./packages/fly",
+            "glob": "executors.json",
+            "output": "."
+          }
+        ]
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": [
+          "packages/fly/**/*.ts",
+          "packages/fly/generators.json",
+          "packages/fly/executors.json",
+          "packages/fly/package.json"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/fly/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}
