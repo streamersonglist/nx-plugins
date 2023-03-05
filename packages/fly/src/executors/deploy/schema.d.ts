@@ -4,4 +4,5 @@ export interface DeployExecutorSchema {
   dockerfile: string;
   tomlFile: string;
   regions: string[];
+  verbose?: boolean;
 }

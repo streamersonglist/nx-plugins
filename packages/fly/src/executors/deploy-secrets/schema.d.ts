@@ -4,4 +4,5 @@ export type DeploySecretsExecutorSchema = {
   replaceAll: boolean;
   organization: string;
   primaryRegion: string;
+  verbose?: boolean;
 };

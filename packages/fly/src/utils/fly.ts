@@ -4,6 +4,7 @@ import { parse } from 'dotenv';
 import { readFileSync } from 'fs';
 import { ClientError, gql, request } from 'graphql-request';
 import { join } from 'path';
+import { CliExecutorSchema } from '../executors/cli/schema';
 
 type AppPayload = {
   app: {
@@ -109,7 +110,6 @@ async function createApp({
 
     return true;
   } catch (error) {
-    logger.debug(error);
     if (error instanceof ClientError) {
       logger.log(error.message);
     }
@@ -145,6 +145,7 @@ export async function deploySecrets(args: {
   replaceAll: boolean;
   organization: string;
   primaryRegion: string;
+  verbose?: boolean;
 }) {
   await verifyApp({
     name: args.appName,
@@ -183,7 +184,11 @@ export async function deploySecrets(args: {
   try {
     const response = await request(FLY_URL, query, { input }, getFlyHeaders());
 
-    logger.debug('setSecrets response', JSON.stringify(response, undefined, 2));
+    args.verbose ??
+      logger.debug(
+        'setSecrets response',
+        JSON.stringify(response, undefined, 2)
+      );
   } catch (error) {
     logger.error(error);
     if (error instanceof ClientError) {
@@ -200,12 +205,14 @@ export async function deploy(
     dockerfile,
     regions,
     organization,
+    verbose,
   }: {
     appName: string;
     tomlFile: string;
     dockerfile: string;
     regions: string[];
     organization: string;
+    verbose?: boolean;
   },
   context: ExecutorContext
 ) {
@@ -213,7 +220,7 @@ export async function deploy(
     context.root,
     context.workspace.projects[context.projectName || '']?.sourceRoot || ''
   );
-  logger.debug({ spawnCwd: cwd });
+  verbose ?? logger.debug({ spawnCwd: cwd });
   await verifyApp({ name: appName, organization, region: regions[0] });
   const deployments = regions.map(
     (region) =>
@@ -226,12 +233,12 @@ export async function deploy(
             `--config=${tomlFile}`,
             `--dockerfile=${dockerfile}`,
             `--region=${region}`,
-            `--local-only`
+            `--local-only`,
           ],
           {
             cwd,
             shell: process.env.SHELL || 'zsh',
-            stdio: 'inherit'
+            stdio: 'inherit',
           }
         );
 
@@ -242,24 +249,20 @@ export async function deploy(
 
         spawned.on('close', (code) => {
           if (code !== 0) {
-            logger.debug({ appName, region });
+            verbose ?? logger.debug({ appName, region });
             logger.error('fly deploy exited with non-zero code: ' + code);
             rej(region);
           }
 
           res(region);
         });
-
-        // spawned.stdout.on('data', (data: string) => {
-        //   logger.info(data);
-        // });
       })
   );
 
   const results = await Promise.allSettled(deployments);
   const failed = [];
   results.forEach((result) => {
-    logger.debug(result);
+    verbose ?? logger.debug(result);
     if (result.status === 'rejected') {
       logger.error('failed to deploy to ' + result.reason);
       failed.push(result.reason);
@@ -271,4 +274,44 @@ export async function deploy(
   if (failed.length) {
     throw new Error('failed to deploy to all regions');
   }
+}
+
+export async function runCli(
+  options: CliExecutorSchema,
+  context: ExecutorContext
+) {
+  const cwd = join(
+    context.root,
+    context.workspace.projects[context.projectName || '']?.sourceRoot || ''
+  );
+  if (options.verbose) {
+    logger.debug({ spawnCwd: cwd });
+  }
+  await new Promise((res, rej) => {
+    const spawned = spawn(
+      `flyctl ${options.args}`,
+      [`--app=${options.appName}`, ...options._],
+      {
+        cwd,
+        shell: process.env.SHELL || 'zsh',
+        stdio: 'pipe',
+      }
+    );
+
+    spawned.on('error', (err) => {
+      logger.error(err);
+      rej();
+    });
+
+    spawned.on('close', (code) => {
+      if (code !== 0) {
+        logger.error('fly deploy exited with non-zero code: ' + code);
+        rej();
+      }
+
+      res('success: ' + code);
+    });
+
+    spawned.stdout.pipe(process.stdout);
+  });
 }

@@ -6,7 +6,9 @@ const runExecutor: Executor<DeployExecutorSchema> = async function(
   options,
   context,
 ) {
-  logger.debug('Executor ran for Deploy', options);
+  if (options.verbose) {
+    logger.debug('Executor ran for Deploy', options);
+  }
   try {
     await deploy(options, context);
   } catch (error) {

@@ -24,6 +24,9 @@
     },
     "organization": {
       "type": "string"
+    },
+    "verbose": {
+      "type": "boolean"
     }
   },
   "required": ["appName", "dockerfile", "tomlFile", "regions", "organization"]

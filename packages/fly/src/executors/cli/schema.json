@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "version": 2,
+  "cli": "nx",
+  "title": "Cli executor",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "appName": {
+      "type": "string"
+    },
+    "organization": {
+      "type": "string"
+    },
+    "args": {
+      "type": "string",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      }
+    },
+    "verbose": {
+      "type": "boolean"
+    }
+  },
+  "required": ["appName", "organization"]
+}

@@ -5,7 +5,9 @@ import { DeploySecretsExecutorSchema } from './schema';
 export default async function runExecutor(
   options: DeploySecretsExecutorSchema
 ) {
-  logger.debug('Executor ran for deploy-secrets', options);
+  if (options.verbose) {
+    logger.debug('Executor ran for deploy-secrets', options);
+  }
 
   try {
     await deploySecrets(options);

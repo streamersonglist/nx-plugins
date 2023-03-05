@@ -21,6 +21,9 @@
     },
     "primaryRegion": {
       "type": "string"
+    },
+    "verbose": {
+      "type": "boolean"
     }
   },
   "required": ["envFile", "appName", "organization"]

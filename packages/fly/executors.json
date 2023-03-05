@@ -10,6 +10,11 @@
       "implementation": "./src/executors/deploy/executor",
       "schema": "./src/executors/deploy/schema.json",
       "description": "deploy executor"
+    },
+    "cli": {
+      "implementation": "./src/executors/cli/executor",
+      "schema": "./src/executors/cli/schema.json",
+      "description": "cli executor"
     }
   }
 }
