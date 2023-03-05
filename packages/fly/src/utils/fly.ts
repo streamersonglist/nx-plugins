@@ -13,6 +13,11 @@ type AppPayload = {
     organizations: { id: string };
   } | null;
 };
+type OrgPayload = {
+  organizations: {
+    nodes: { id: string; name: string }[];
+  };
+};
 
 type CreateAppPayload = {
   createApp: { state: string } | null;
@@ -33,6 +38,40 @@ function getFlyToken() {
 
 function getFlyHeaders() {
   return { Authorization: `Bearer ${getFlyToken()}` };
+}
+
+async function getOrgId(org: string) {
+  const query = gql`
+    query {
+      organizations {
+        nodes {
+          id
+          name
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await request<OrgPayload>(
+      FLY_URL,
+      query,
+      undefined,
+      getFlyHeaders()
+    );
+
+    const orgId = response.organizations.nodes.find(
+      (node) => node.name === org
+    )?.id;
+    if (!orgId) {
+      logger.error(`organization id not found for slug: ${org}`);
+      throw new Error();
+    }
+    return orgId;
+  } catch (error) {
+    logger.debug(error);
+    return;
+  }
 }
 
 async function getApp(name: string) {
@@ -62,21 +101,18 @@ async function getApp(name: string) {
     return response;
   } catch (error) {
     logger.debug(error);
-    if (error instanceof ClientError) {
-      logger.log(error.message);
-    }
-    throw new Error('unable to find app');
+    return;
   }
 }
 
 async function createApp({
   appName,
   region,
-  organizationId,
+  organization,
 }: {
   appName: string;
   region: string;
-  organizationId: string;
+  organization: string;
 }) {
   const query = gql`
     mutation ($input: CreateAppInput!) {
@@ -91,7 +127,7 @@ async function createApp({
   const input = {
     name: appName,
     preferredRegion: region,
-    organizationId,
+    organizationId: await getOrgId(organization),
   };
 
   try {
@@ -130,7 +166,7 @@ async function verifyApp({
   if (!app) {
     const created = await createApp({
       appName: name,
-      organizationId: organization,
+      organization,
       region,
     });
     if (!created) {
@@ -277,20 +313,37 @@ export async function deploy(
 }
 
 export async function runCli(
-  options: CliExecutorSchema,
+  {
+    appName,
+    organization,
+    arg1,
+    arg2,
+    verbose,
+    _,
+    ...additional
+  }: CliExecutorSchema,
   context: ExecutorContext
 ) {
   const cwd = join(
     context.root,
     context.workspace.projects[context.projectName || '']?.sourceRoot || ''
   );
-  if (options.verbose) {
+  if (verbose) {
     logger.debug({ spawnCwd: cwd });
   }
+  const passedOpts = Object.keys(additional).map(
+    (key) => `--${key}=${additional[key as never]}`
+  );
   await new Promise((res, rej) => {
     const spawned = spawn(
-      `flyctl ${options.args}`,
-      [`--app=${options.appName}`, ...options._],
+      `flyctl ${arg1}`,
+      [
+        arg2 || '',
+        ...(_ || []),
+        `--app=${appName}`,
+        `--org=${organization}`,
+        ...(passedOpts || []),
+      ],
       {
         cwd,
         shell: process.env.SHELL || 'zsh',
@@ -312,6 +365,8 @@ export async function runCli(
       res('success: ' + code);
     });
 
+    spawned.stdin.pipe(process.stdin);
+    spawned.stderr.pipe(process.stderr);
     spawned.stdout.pipe(process.stdout);
   });
 }

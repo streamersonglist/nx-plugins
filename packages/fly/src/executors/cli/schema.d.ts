@@ -1,7 +1,8 @@
 export interface CliExecutorSchema {
   appName: string;
   organization: string;
-  args: string;
+  arg1: string;
+  arg2?: string;
   verbose?: boolean;
-  _: string;
+  _?: string[];
 }

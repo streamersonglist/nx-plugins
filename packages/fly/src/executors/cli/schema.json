@@ -12,11 +12,18 @@
     "organization": {
       "type": "string"
     },
-    "args": {
+    "arg1": {
       "type": "string",
       "$default": {
         "$source": "argv",
         "index": 0
+      }
+    },
+    "arg2": {
+      "type": "string",
+      "$default": {
+        "$source": "argv",
+        "index": 1
       }
     },
     "verbose": {
