@@ -79,7 +79,7 @@ export async function getSecrets({
   // https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_GetParameters.html
   const names: string[][] = [];
   const nameMap: Record<string, string> = {};
-  for (let i = 0; i < Math.ceil(parameters.length / 10); i += 10) {
+  for (let i = 0; i < parameters.length; i += 10) {
     names.push(
       parameters.slice(i, i + 10).map(({ ssm, variable }) => {
         nameMap[`${ssmPrefix}${ssm}`] = variable;
