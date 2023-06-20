@@ -1,0 +1,30 @@
+{
+  "name": "rspack",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/rspack/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:swc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/rspack",
+        "main": "packages/rspack/src/index.ts",
+        "tsConfig": "packages/rspack/tsconfig.lib.json",
+        "assets": ["packages/rspack/*.md"]
+      }
+    },
+    "publish": {
+      "command": "node tools/scripts/publish.mjs rspack {args.ver} {args.tag}",
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/rspack/**/*.ts"]
+      }
+    }
+  },
+  "tags": []
+}

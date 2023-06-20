@@ -17,6 +17,7 @@
     "baseUrl": ".",
     "paths": {
       "@streamersonglist/fly": ["packages/fly/src/index.ts"],
+      "@streamersonglist/rspack": ["packages/rspack/src/index.ts"],
       "@streamersonglist/secrets": ["packages/secrets/src/index.ts"]
     }
   },

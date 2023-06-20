@@ -1,0 +1,10 @@
+{
+  "name": "@streamersonglist/rspack",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "dependencies": {
+    "@rspack/core": "~0.1.12",
+    "@nx/devkit": "16.2.1",
+    "@nx/webpack": "16.2.1"
+  }
+}
