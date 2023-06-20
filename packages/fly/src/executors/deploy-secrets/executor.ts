@@ -1,4 +1,4 @@
-import { logger } from '@nrwl/devkit';
+import { logger } from '@nx/devkit';
 import { deploySecrets } from '../../utils/fly';
 import { DeploySecretsExecutorSchema } from './schema';
 

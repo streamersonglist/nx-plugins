@@ -1,4 +1,4 @@
-import { logger } from '@nrwl/devkit';
+import { logger } from '@nx/devkit';
 import { putSecrets } from '../../utils/ssm';
 import { SetExecutorSchema } from './schema';
 

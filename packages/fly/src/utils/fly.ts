@@ -1,4 +1,4 @@
-import { ExecutorContext, logger } from '@nrwl/devkit';
+import { ExecutorContext, logger } from '@nx/devkit';
 import { spawn } from 'child_process';
 import { parse } from 'dotenv';
 import { readFileSync } from 'fs';

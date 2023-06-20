@@ -1,10 +1,10 @@
-import { logger, Executor } from '@nrwl/devkit';
+import { logger, Executor } from '@nx/devkit';
 import { deploy } from '../../utils/fly';
 import { DeployExecutorSchema } from './schema';
 
-const runExecutor: Executor<DeployExecutorSchema> = async function(
+const runExecutor: Executor<DeployExecutorSchema> = async function (
   options,
-  context,
+  context
 ) {
   if (options.verbose) {
     logger.debug('Executor ran for Deploy', options);
@@ -19,6 +19,6 @@ const runExecutor: Executor<DeployExecutorSchema> = async function(
   return {
     success: true,
   };
-}
+};
 
 export default runExecutor;

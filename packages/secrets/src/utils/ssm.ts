@@ -6,7 +6,7 @@ import {
   SSMClientConfig,
 } from '@aws-sdk/client-ssm';
 import { fromSSO } from '@aws-sdk/credential-providers';
-import { logger } from '@nrwl/devkit';
+import { logger } from '@nx/devkit';
 import { parse } from 'dotenv';
 import { readFileSync, writeFileSync } from 'fs';
 import { GetExecutorSchema } from '../executors/get/schema';

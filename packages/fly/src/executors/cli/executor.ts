@@ -1,4 +1,4 @@
-import { Executor, ExecutorContext, logger } from '@nrwl/devkit';
+import { Executor, ExecutorContext, logger } from '@nx/devkit';
 import { runCli } from '../../utils/fly';
 import { CliExecutorSchema } from './schema';
 
@@ -18,7 +18,7 @@ const runExecutor: Executor<CliExecutorSchema> = async (
     logger.error(error);
     return {
       success: false,
-    }
+    };
   }
 };
 

@@ -1,7 +1,6 @@
 {
   "$schema": "http://json-schema.org/schema",
   "version": 2,
-  "cli": "nx",
   "title": "Deploy secrests executor",
   "description": "Upload secrets to app without deploying",
   "type": "object",
@@ -26,5 +25,9 @@
       "type": "boolean"
     }
   },
-  "required": ["envFile", "appName", "organization"]
+  "required": [
+    "envFile",
+    "appName",
+    "organization"
+  ]
 }

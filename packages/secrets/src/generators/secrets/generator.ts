@@ -7,7 +7,7 @@ import {
   readProjectConfiguration,
   Tree,
   updateProjectConfiguration,
-} from '@nrwl/devkit';
+} from '@nx/devkit';
 import * as path from 'path';
 import { SecretsGeneratorSchema } from './schema';
 

@@ -5,11 +5,12 @@
   "sourceRoot": "e2e/secrets-e2e/src",
   "targets": {
     "e2e": {
-      "executor": "@nrwl/nx-plugin:e2e",
+      "executor": "@nx/jest:jest",
       "options": {
-        "target": "secrets:build",
-        "jestConfig": "e2e/secrets-e2e/jest.config.ts"
-      }
+        "jestConfig": "e2e/secrets-e2e/jest.config.ts",
+        "runInBand": true
+      },
+      "dependsOn": ["secrets:build"]
     }
   },
   "tags": [],

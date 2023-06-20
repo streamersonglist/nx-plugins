@@ -1,6 +1,5 @@
 {
   "$schema": "http://json-schema.org/schema",
-  "cli": "nx",
   "$id": "Fly",
   "title": "",
   "type": "object",
@@ -30,5 +29,10 @@
       "type": "string"
     }
   },
-  "required": ["project", "appName", "organization", "primaryRegion"]
+  "required": [
+    "project",
+    "appName",
+    "organization",
+    "primaryRegion"
+  ]
 }
