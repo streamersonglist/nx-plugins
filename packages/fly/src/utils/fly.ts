@@ -181,6 +181,7 @@ export async function deploySecrets(args: {
   replaceAll: boolean;
   organization: string;
   primaryRegion: string;
+  restart: boolean;
   verbose?: boolean;
 }) {
   await verifyApp({
@@ -232,6 +233,41 @@ export async function deploySecrets(args: {
     }
     throw new Error('unable to deploy secrets');
   }
+
+  if (args.restart) {
+    try {
+      await restart(args.appName);
+    } catch (error) {
+      logger.error('error restarting app');
+    }
+  }
+}
+
+async function restart(appName: string) {
+  const query = gql`
+    mutation ($input: RestartAppInput!) {
+      restartApp(input: $input) {
+        app {
+          name
+          id
+        }
+      }
+    }
+  `;
+
+  const input = {
+    appId: appName,
+  };
+
+  try {
+    await request(FLY_URL, query, { input }, getFlyHeaders());
+  } catch (error) {
+    logger.error(error);
+    if (error instanceof ClientError) {
+      logger.log(error.message);
+    }
+    throw new Error('unable to restart');
+  }
 }
 
 export async function deploy(
@@ -254,7 +290,7 @@ export async function deploy(
 ) {
   const cwd = join(
     context.root,
-    context.workspace.projects[context.projectName || '']?.sourceRoot || ''
+    context.workspace?.projects[context.projectName || '']?.sourceRoot || ''
   );
   verbose ?? logger.debug({ spawnCwd: cwd });
   await verifyApp({ name: appName, organization, region: regions[0] });
@@ -326,7 +362,7 @@ export async function runCli(
 ) {
   const cwd = join(
     context.root,
-    context.workspace.projects[context.projectName || '']?.sourceRoot || ''
+    context.workspace?.projects[context.projectName || '']?.sourceRoot || ''
   );
   if (verbose) {
     logger.debug({ spawnCwd: cwd });

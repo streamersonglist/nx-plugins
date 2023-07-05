@@ -21,6 +21,11 @@
     "primaryRegion": {
       "type": "string"
     },
+    "restart": {
+      "type": "boolean",
+      "description": "rolling restart containers to read updated secrets",
+      "default": false
+    },
     "verbose": {
       "type": "boolean"
     }
