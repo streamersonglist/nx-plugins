@@ -290,7 +290,7 @@ export async function deploy(
 ) {
   const cwd = join(
     context.root,
-    context.workspace?.projects[context.projectName || '']?.sourceRoot || ''
+    context.workspace?.projects[context.projectName || '']?.root || ''
   );
   verbose ?? logger.debug({ spawnCwd: cwd });
   await verifyApp({ name: appName, organization, region: regions[0] });
@@ -362,7 +362,7 @@ export async function runCli(
 ) {
   const cwd = join(
     context.root,
-    context.workspace?.projects[context.projectName || '']?.sourceRoot || ''
+    context.workspace?.projects[context.projectName || '']?.root || ''
   );
   if (verbose) {
     logger.debug({ spawnCwd: cwd });
