@@ -15,6 +15,11 @@
       "implementation": "./src/executors/cli/executor",
       "schema": "./src/executors/cli/schema.json",
       "description": "cli executor"
+    },
+    "setup": {
+      "implementation": "./src/executors/setup/executor",
+      "schema": "./src/executors/setup/schema.json",
+      "description": "setup executor"
     }
   }
 }

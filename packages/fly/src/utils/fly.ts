@@ -13,6 +13,32 @@ type AppPayload = {
     organizations: { id: string };
   } | null;
 };
+type IpAddresses = {
+  app: {
+    ipAddresses: {
+      nodes: {
+        id: string;
+        address: string;
+        type: string;
+        region: string;
+        createdAt: string;
+      }[];
+    };
+    sharedIpAddress: string | null;
+  };
+};
+type IpAddressType = 'v4' | 'v6' | 'private_v6' | 'shared_v4';
+type AllocateIpAddressPayload = {
+  allocateIpAddress: {
+    ipAddress: {
+      id: string;
+      address: string;
+      type: IpAddressType;
+      region: string;
+      createdAt: string;
+    };
+  };
+};
 type OrgPayload = {
   organizations: {
     nodes: { id: string; name: string }[];
@@ -74,7 +100,7 @@ async function getOrgId(org: string) {
   }
 }
 
-async function getApp(name: string) {
+export async function getApp(name: string) {
   const query = gql`
     query ($name: String) {
       app(name: $name) {
@@ -102,6 +128,197 @@ async function getApp(name: string) {
   } catch (error) {
     logger.debug(error);
     return;
+  }
+}
+
+export async function setupIps(args: {
+  appName: string;
+  organizationId: string;
+  region: string;
+  types: IpAddressType[];
+}) {
+  const ips = await getIps(args.appName);
+
+  for (const type of ['v4', 'v6', 'private_v6'] as const) {
+    const ip = ips?.app.ipAddresses.nodes.find((ip) => ip.type === type);
+    if (ip && args.types.includes(type)) {
+      logger.info(`IP Address ${ip.address} already exists`);
+      continue;
+    }
+
+    if (ip && !args.types.includes(type)) {
+      logger.info(`Releasing IP Address ${ip.address}`);
+      await releaseIpAddress({
+        appName: args.appName,
+        ipAddress: ip.address,
+      });
+      continue;
+    }
+
+    if (!ip && args.types.includes(type)) {
+      const newIp = await allocateIpAddress({
+        appName: args.appName,
+        organization: args.organizationId,
+        region: args.region,
+        type,
+      });
+      logger.info(`IP Address ${newIp.address} created`);
+      continue;
+    }
+  }
+
+  if (ips?.app.sharedIpAddress && !args.types.includes('shared_v4')) {
+    logger.info(`Releasing shared IP Address ${ips.app.sharedIpAddress}`);
+    await releaseIpAddress({
+      appName: args.appName,
+      ipAddress: ips.app.sharedIpAddress,
+    });
+  }
+
+  if (!ips?.app.sharedIpAddress && args.types.includes('shared_v4')) {
+    const newIp = await allocateIpAddress({
+      appName: args.appName,
+      organization: args.organizationId,
+      region: args.region,
+      type: 'shared_v4',
+    });
+    logger.info(`Shared IP Address ${newIp.address} created`);
+  }
+
+  logger.info('IP Addresses setup complete');
+}
+
+export async function getIps(name: string) {
+  const query = gql`
+    query ($appName: String!) {
+      app(name: $appName) {
+        ipAddresses {
+          nodes {
+            id
+            address
+            type
+            region
+            createdAt
+          }
+        }
+        sharedIpAddress
+      }
+    }
+  `;
+
+  try {
+    const response = await request<IpAddresses>(
+      FLY_URL,
+      query,
+      { name },
+      getFlyHeaders()
+    );
+
+    logger.debug('getIps response', JSON.stringify(response, undefined, 2));
+    return response;
+  } catch (error) {
+    logger.debug(error);
+    return;
+  }
+}
+
+export async function releaseIpAddress({
+  appName,
+  ipAddress,
+}: {
+  appName: string;
+  ipAddress: string;
+}) {
+  const query = gql`
+    mutation ($input: ReleaseIPAddressInput!) {
+      releaseIpAddress(input: $input) {
+        clientMutationId
+      }
+    }
+  `;
+
+  const input = {
+    appId: appName,
+    ip: ipAddress,
+  };
+
+  try {
+    const response = await request<unknown>(
+      FLY_URL,
+      query,
+      { input },
+      getFlyHeaders()
+    );
+
+    logger.debug(
+      'releaseIpAddress response',
+      JSON.stringify(response, undefined, 2)
+    );
+
+    return true;
+  } catch (error) {
+    if (error instanceof ClientError) {
+      logger.log(error.message);
+    }
+    throw new Error('unable to create app');
+  }
+}
+
+export async function allocateIpAddress({
+  appName,
+  region,
+  organization,
+  type,
+}: {
+  appName: string;
+  region: string;
+  organization: string;
+  type: IpAddressType;
+}) {
+  const query = gql`
+    mutation ($input: AllocateIPAddressInput!) {
+      allocateIpAddress(input: $input) {
+        ipAddress {
+          id
+          address
+          type
+          region
+          createdAt
+        }
+      }
+    }
+  `;
+
+  const input = {
+    type,
+    region,
+    appId: appName,
+    organizationId: await getOrgId(organization),
+  };
+
+  try {
+    const response = await request<AllocateIpAddressPayload>(
+      FLY_URL,
+      query,
+      { input },
+      getFlyHeaders()
+    );
+
+    logger.debug(
+      'allocateIpAddress response',
+      JSON.stringify(response, undefined, 2)
+    );
+
+    if (!response.allocateIpAddress.ipAddress) {
+      throw new Error('unable to allocate ip address');
+    }
+
+    return response.allocateIpAddress.ipAddress;
+  } catch (error) {
+    if (error instanceof ClientError) {
+      logger.log(error.message);
+    }
+    throw new Error('unable to create app');
   }
 }
 

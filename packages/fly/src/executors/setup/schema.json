@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "version": 2,
+  "title": "Setup executor",
+  "description": "",
+  "type": "object",
+  "properties": {
+    "appName": {
+      "type": "string"
+    },
+    "connection": {
+      "type": "string",
+      "enum": ["public", "private"]
+    }
+  },
+  "required": ["appName", "connection"]
+}
