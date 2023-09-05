@@ -10,7 +10,7 @@ type AppPayload = {
   app: {
     status: string;
     regions: { code: string }[];
-    organizations: { id: string };
+    organization: { id: string };
   } | null;
 };
 type IpAddresses = {
@@ -573,7 +573,7 @@ export async function deploy(
       await setupIps({
         appName,
         region: region.code,
-        organizationId: app.app.organizations.id,
+        organizationId: app.app.organization.id,
         types: ipAddressTypes,
       });
     }

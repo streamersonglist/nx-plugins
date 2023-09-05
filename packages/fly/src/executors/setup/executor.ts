@@ -12,7 +12,7 @@ export default async function runExecutor(options: SetupExecutorSchema) {
         await setupIps({
           appName: options.appName,
           region: region.code,
-          organizationId: app.app.organizations.id,
+          organizationId: app.app.organization.id,
           types:
             options.connection === 'private'
               ? ['private_v6']
