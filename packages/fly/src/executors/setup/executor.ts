@@ -24,7 +24,13 @@ export default async function runExecutor(options: SetupExecutorSchema) {
         success: true,
       };
     }
+
+    logger.error('No regions found for app');
+    return {
+      success: false,
+    };
   } catch (error) {
+    logger.error(error);
     return {
       success: false,
     };

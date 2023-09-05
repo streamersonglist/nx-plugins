@@ -137,6 +137,7 @@ export async function setupIps(args: {
   region: string;
   types: IpAddressType[];
 }) {
+  logger.info('Setting up IP Addresses');
   const ips = await getIps(args.appName);
 
   for (const type of ['v4', 'v6', 'private_v6'] as const) {
@@ -495,6 +496,7 @@ export async function deploy(
     regions,
     organization,
     verbose,
+    ipAddressTypes,
   }: {
     appName: string;
     tomlFile: string;
@@ -502,6 +504,7 @@ export async function deploy(
     regions: string[];
     organization: string;
     verbose?: boolean;
+    ipAddressTypes: IpAddressType[];
   },
   context: ExecutorContext
 ) {
@@ -562,6 +565,18 @@ export async function deploy(
 
   if (failed.length) {
     throw new Error('failed to deploy to all regions');
+  }
+
+  const app = await getApp(appName);
+  if (app?.app) {
+    for (const region of app.app.regions) {
+      await setupIps({
+        appName,
+        region: region.code,
+        organizationId: app.app.organizations.id,
+        types: ipAddressTypes,
+      });
+    }
   }
 }
 

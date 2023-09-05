@@ -14,14 +14,19 @@
     "tomlFile": {
       "type": "string"
     },
+    "ipAddressTypes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": ["private_v6"]
+    },
     "regions": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "default": [
-        "sea"
-      ]
+      "default": ["sea"]
     },
     "organization": {
       "type": "string"
@@ -30,11 +35,5 @@
       "type": "boolean"
     }
   },
-  "required": [
-    "appName",
-    "dockerfile",
-    "tomlFile",
-    "regions",
-    "organization"
-  ]
+  "required": ["appName", "dockerfile", "tomlFile", "regions", "organization"]
 }
