@@ -1,6 +1,6 @@
 {
   "name": "@streamersonglist/fly",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "main": "src/index.js",
   "generators": "./generators.json",
   "executors": "./executors.json",
