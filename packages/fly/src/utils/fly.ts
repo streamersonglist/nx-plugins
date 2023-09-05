@@ -159,7 +159,7 @@ export async function setupIps(args: {
     if (!ip && args.types.includes(type)) {
       const newIp = await allocateIpAddress({
         appName: args.appName,
-        organization: args.organizationId,
+        organizationId: args.organizationId,
         region: args.region,
         type,
       });
@@ -179,7 +179,7 @@ export async function setupIps(args: {
   if (!ips?.app.sharedIpAddress && args.types.includes('shared_v4')) {
     const newIp = await allocateIpAddress({
       appName: args.appName,
-      organization: args.organizationId,
+      organizationId: args.organizationId,
       region: args.region,
       type: 'shared_v4',
     });
@@ -189,7 +189,7 @@ export async function setupIps(args: {
   logger.info('IP Addresses setup complete');
 }
 
-export async function getIps(name: string) {
+export async function getIps(appName: string) {
   const query = gql`
     query ($appName: String!) {
       app(name: $appName) {
@@ -211,7 +211,7 @@ export async function getIps(name: string) {
     const response = await request<IpAddresses>(
       FLY_URL,
       query,
-      { name },
+      { appName },
       getFlyHeaders()
     );
 
@@ -268,12 +268,12 @@ export async function releaseIpAddress({
 export async function allocateIpAddress({
   appName,
   region,
-  organization,
+  organizationId,
   type,
 }: {
   appName: string;
   region: string;
-  organization: string;
+  organizationId: string;
   type: IpAddressType;
 }) {
   const query = gql`
@@ -294,7 +294,7 @@ export async function allocateIpAddress({
     type,
     region,
     appId: appName,
-    organizationId: await getOrgId(organization),
+    organizationId,
   };
 
   try {
