@@ -514,57 +514,44 @@ export async function deploy(
   );
   verbose ?? logger.debug({ spawnCwd: cwd });
   await verifyApp({ name: appName, organization, region: regions[0] });
-  const deployments = regions.map(
-    (region) =>
-      new Promise((res, rej) => {
-        const spawned = spawn(
-          `flyctl deploy`,
-          [
-            `--app=${appName}`,
-            `--auto-confirm`,
-            `--config=${tomlFile}`,
-            `--dockerfile=${dockerfile}`,
-            `--region=${region}`,
-            `--local-only`,
-          ],
-          {
-            cwd,
-            shell: process.env.SHELL || 'zsh',
-            stdio: 'inherit',
-          }
-        );
 
-        spawned.on('error', (err) => {
-          logger.error(err);
-          rej(region);
-        });
+  try {
+    const result = await new Promise((res, rej) => {
+      const spawned = spawn(
+        `flyctl deploy`,
+        [
+          `--app=${appName}`,
+          `--config=${tomlFile}`,
+          `--dockerfile=${dockerfile}`,
+          `--regions=${regions}`,
+          `--local-only`,
+          `--yes`,
+        ],
+        {
+          cwd,
+          shell: process.env.SHELL || 'zsh',
+          stdio: 'inherit',
+        }
+      );
 
-        spawned.on('close', (code) => {
-          if (code !== 0) {
-            verbose ?? logger.debug({ appName, region });
-            logger.error('fly deploy exited with non-zero code: ' + code);
-            rej(region);
-          }
+      spawned.on('error', (err) => {
+        logger.error(err);
+        rej(false);
+      });
 
-          res(region);
-        });
-      })
-  );
+      spawned.on('close', (code) => {
+        if (code !== 0) {
+          verbose ?? logger.debug({ appName, regions });
+          logger.error('fly deploy exited with non-zero code: ' + code);
+          rej(false);
+        }
 
-  const results = await Promise.allSettled(deployments);
-  const failed = [];
-  results.forEach((result) => {
-    verbose ?? logger.debug(result);
-    if (result.status === 'rejected') {
-      logger.error('failed to deploy to ' + result.reason);
-      failed.push(result.reason);
-    } else {
-      logger.info('deployed to ' + result.value);
-    }
-  });
-
-  if (failed.length) {
-    throw new Error('failed to deploy to all regions');
+        res(true);
+      });
+    });
+  } catch (error) {
+    logger.error(error);
+    return { success: false };
   }
 
   const app = await getApp(appName);
